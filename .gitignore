@@ -1,0 +1,26 @@
+node_modules
+dist
+
+# npm config (contains token)
+.npmrc
+
+# local env files (secrets)
+.env
+.env.local
+.env.*.local
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
