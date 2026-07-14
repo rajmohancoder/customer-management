@@ -12,7 +12,7 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/customers">
       <App />
     </BrowserRouter>
   </StrictMode>,

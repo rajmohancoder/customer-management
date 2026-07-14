@@ -1,12 +1,10 @@
-import { Link } from 'react-router-dom';
-
 export function UnauthorizedPage() {
   return (
-    <div className="flex min-h-[400px] items-center justify-center p-8">
-      <div className="max-w-md text-center">
-        <div className="mx-auto mb-4 h-16 w-16 text-red-400">
+    <div className="flex min-h-[60vh] items-center justify-center p-8">
+      <div className="max-w-md text-center animate-fade-in">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-50">
           <svg
-            className="h-16 w-16"
+            className="h-10 w-10 text-amber-500"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -21,14 +19,10 @@ export function UnauthorizedPage() {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Access Denied</h1>
-        <p className="mt-2 text-gray-500">You don't have permission to access this page.</p>
-        <Link
-          to="/"
-          className="mt-6 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-        >
-          Go to Dashboard
-        </Link>
+        <h1 className="text-3xl font-bold text-surface-900">Unauthorized Access</h1>
+        <p className="mt-2 text-surface-500">
+          You do not have permission to view this page. Please contact your administrator.
+        </p>
       </div>
     </div>
   );

@@ -2,11 +2,11 @@ import { Link } from 'react-router-dom';
 
 export function NotFoundPage() {
   return (
-    <div className="flex min-h-[400px] items-center justify-center p-8">
-      <div className="max-w-md text-center">
-        <div className="mx-auto mb-4 h-16 w-16 text-gray-400">
+    <div className="flex min-h-[60vh] items-center justify-center p-8">
+      <div className="max-w-md text-center animate-fade-in">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-surface-100">
           <svg
-            className="h-16 w-16"
+            className="h-10 w-10 text-surface-400"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -21,13 +21,18 @@ export function NotFoundPage() {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">Page Not Found</h1>
-        <p className="mt-2 text-gray-500">The page you're looking for doesn't exist.</p>
+        <h1 className="text-3xl font-bold text-surface-900">Page Not Found</h1>
+        <p className="mt-2 text-surface-500">
+          The page you are looking for does not exist or has been moved.
+        </p>
         <Link
           to="/"
-          className="mt-6 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="mt-8 btn-primary inline-flex"
         >
-          Back to Customers
+          <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fillRule="evenodd" d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z" clipRule="evenodd" />
+          </svg>
+          Back to Dashboard
         </Link>
       </div>
     </div>

@@ -16,10 +16,10 @@ export function CustomerActions({ onView, onEdit, onDelete, size = 'md' }: Custo
   const iconClass = cn(sizeMap[size]);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5">
       <button
         onClick={onView}
-        className="rounded p-1.5 text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
+        className="rounded-lg p-1.5 text-surface-400 transition-colors hover:bg-surface-100 hover:text-brand-600"
         aria-label="View customer"
         title="View"
       >
@@ -30,7 +30,7 @@ export function CustomerActions({ onView, onEdit, onDelete, size = 'md' }: Custo
       </button>
       <button
         onClick={onEdit}
-        className="rounded p-1.5 text-gray-400 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+        className="rounded-lg p-1.5 text-surface-400 transition-colors hover:bg-surface-100 hover:text-brand-600"
         aria-label="Edit customer"
         title="Edit"
       >
@@ -41,7 +41,7 @@ export function CustomerActions({ onView, onEdit, onDelete, size = 'md' }: Custo
       </button>
       <button
         onClick={onDelete}
-        className="rounded p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+        className="rounded-lg p-1.5 text-surface-400 transition-colors hover:bg-red-50 hover:text-red-600"
         aria-label="Delete customer"
         title="Delete"
       >

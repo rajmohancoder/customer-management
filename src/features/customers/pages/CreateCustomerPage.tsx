@@ -26,28 +26,36 @@ export function CreateCustomerPage() {
   );
 
   return (
-    <div>
-      <div className="mb-4">
-        <Link to="/customers" className="text-sm text-blue-600 hover:text-blue-800">
-          &larr; Back to Customers
-        </Link>
-      </div>
+    <div className="space-y-6 animate-fade-in">
+      <nav className="flex items-center gap-2 text-sm text-surface-500">
+        <Link to="/customers" className="hover:text-surface-700 transition-colors">Customers</Link>
+        <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+        </svg>
+        <span className="font-medium text-surface-900">New Customer</span>
+      </nav>
 
-      <PageHeader title="Create Customer" />
+      <PageHeader
+        title="Create Customer"
+        description="Add a new customer to your CRM."
+      />
 
       {submitError && (
-        <div className="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700">
-          {submitError}
+        <div className="animate-slide-in-down rounded-xl border border-red-200 bg-red-50 px-5 py-4">
+          <div className="flex items-center gap-3">
+            <svg className="h-5 w-5 shrink-0 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+            </svg>
+            <p className="text-sm font-medium text-red-800">{submitError}</p>
+          </div>
         </div>
       )}
 
-      <div className="mt-6">
-        <CustomerForm
-          onSubmit={handleSubmit}
-          isSubmitting={createMutation.isPending}
-          mode="create"
-        />
-      </div>
+      <CustomerForm
+        onSubmit={handleSubmit}
+        isSubmitting={createMutation.isPending}
+        mode="create"
+      />
     </div>
   );
 }
