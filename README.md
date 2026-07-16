@@ -234,30 +234,9 @@ Prepare for `@rajmohancoder/events` integration:
 
 Publish using `window.postMessage` or the Shell's event bus.
 
-## API Layer — Real Client (Production)
+## Data Source
 
-The real API lives in `api/real-client/` and is the source of truth once migration is complete.
-
-**Three files only:**
-
-```
-api/real-client/
-├── client.ts    # createApiClient({ baseUrl, scopes }) — one instance
-├── api.ts       # One-liner functions → apiClient.get<T>(url).then(r => r.data)
-└── hooks.ts     # TanStack Query hooks with retry: false (api-client handles retries)
-```
-
-**Migration status:**
-
-| File | Old (mock) | New (real-client) |
-|---|---|---|
-| `hooks/useCustomers.ts` | `customerService.list()` | `customerApi.list().then(r => r.data)` ✓ |
-| `hooks/useCustomer.ts` | `customerService.getById()` | `customerApi.get().then(r => r.data)` ✓ |
-
-**Once all hooks are migrated:**
-- `services/customerService.ts` — remove (no longer needed)
-- `api/client.ts` + `api/mock.ts` — remove (test data only)
-- `api/real-client/` becomes the single source of truth
+Configured for **real API** by default. Only `useCustomers` (customer list page) uses mock data for demo purposes — see [`SWITCHING_DATA_SOURCE.md`](./SWITCHING_DATA_SOURCE.md).
 
 ## Code Quality Principles
 

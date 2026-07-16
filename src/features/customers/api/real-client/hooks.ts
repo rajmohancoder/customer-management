@@ -1,14 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchCustomers } from '../client';
 import { customerApi } from './api';
 import { QUERY_KEYS } from '@/constants';
-import type { CustomerFormData } from '../../types';
+import type { CustomerFormData, CustomerListParams } from '../../types';
 
-export function useCustomers(params: { page: number; pageSize: number; search?: string; status?: string; tier?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }) {
+export function useCustomers(params: CustomerListParams) {
   return useQuery({
     queryKey: [QUERY_KEYS.customers, params],
-    queryFn: () => customerApi.list(params).then((r) => r.data),
+    queryFn: () => fetchCustomers(params),
     staleTime: 30_000,
-    retry: false, // api-client already retries internally
+    retry: false,
   });
 }
 
