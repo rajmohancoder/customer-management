@@ -12,7 +12,7 @@ import {
   updateCustomer,
   deleteCustomer,
   fetchCustomerStats,
-} from '../api/client';
+} from '../api/jsonplaceholder-client';
 
 export interface ApiClient {
   fetchCustomers: typeof fetchCustomers;

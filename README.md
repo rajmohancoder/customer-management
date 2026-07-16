@@ -58,8 +58,12 @@ src/
 ├── features/
 │   └── customers/            # Feature module (domain-driven)
 │       ├── api/
-│       │   ├── client.ts     # Mock CRUD API with pagination/sort/filter
-│       │   └── mock.ts       # 50 realistic customer records
+│       │   ├── real-client/   # Production API client (single source of truth)
+│       │   │   ├── client.ts  # createApiClient({ baseUrl, scopes })
+│       │   │   ├── api.ts     # One-liner API functions
+│       │   │   └── hooks.ts   # TanStack Query hooks (optional, hooks/ dir preferred)
+│       │   ├── client.ts      # Mock CRUD API (to be removed)
+│       │   └── mock.ts        # 50 realistic customer records (to be removed)
 │       ├── components/       # Reusable UI components
 │       │   ├── CustomerTable.tsx
 │       │   ├── CustomerCard.tsx
@@ -90,7 +94,7 @@ src/
 │       ├── schemas/
 │       │   └── customerSchema.ts   # Zod validation schemas
 │       ├── services/
-│       │   └── customerService.ts  # Service layer (DI-ready)
+│       │   └── customerService.ts  # Service layer (to be removed — hooks call api directly)
 │       └── types/
 │           └── index.ts            # Feature-specific types
 ├── routes/
@@ -230,23 +234,30 @@ Prepare for `@rajmohancoder/events` integration:
 
 Publish using `window.postMessage` or the Shell's event bus.
 
-## API Layer (Future Integration)
+## API Layer — Real Client (Production)
 
-The `CustomerService` class accepts an optional `ApiClient` parameter for DI:
+The real API lives in `api/real-client/` and is the source of truth once migration is complete.
 
-```ts
-// When ready to switch from mock to real API:
-import { createApiClient } from '@rajmohancoder/api-client';
+**Three files only:**
 
-const apiClient = createApiClient({
-  baseUrl: import.meta.env.VITE_API_URL,
-});
-
-const service = createCustomerService({
-  fetchCustomers: (params) => apiClient.get('/customers', { params }),
-  // ... implement each method
-});
 ```
+api/real-client/
+├── client.ts    # createApiClient({ baseUrl, scopes }) — one instance
+├── api.ts       # One-liner functions → apiClient.get<T>(url).then(r => r.data)
+└── hooks.ts     # TanStack Query hooks with retry: false (api-client handles retries)
+```
+
+**Migration status:**
+
+| File | Old (mock) | New (real-client) |
+|---|---|---|
+| `hooks/useCustomers.ts` | `customerService.list()` | `customerApi.list().then(r => r.data)` ✓ |
+| `hooks/useCustomer.ts` | `customerService.getById()` | `customerApi.get().then(r => r.data)` ✓ |
+
+**Once all hooks are migrated:**
+- `services/customerService.ts` — remove (no longer needed)
+- `api/client.ts` + `api/mock.ts` — remove (test data only)
+- `api/real-client/` becomes the single source of truth
 
 ## Code Quality Principles
 
