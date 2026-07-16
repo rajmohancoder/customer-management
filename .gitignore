@@ -1,8 +1,8 @@
 node_modules
 dist
 
-# npm config (contains token)
-.npmrc
+# local npm overrides (do not commit personal tokens)
+.npmrc.local
 
 # local env files (secrets)
 .env
