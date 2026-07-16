@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useCreateCustomer } from '../hooks/useCreateCustomer';
+import { useCreateCustomer } from '../api/real-client/hooks';
 import { PageHeader } from '../components/PageHeader';
 import { CustomerForm } from '../components/CustomerForm';
 import type { CustomerFormValues } from '../schemas/customerSchema';

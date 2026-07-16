@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCustomers } from '../hooks/useCustomers';
 import { PageHeader } from '../components/PageHeader';
 import { CustomerSearch } from '../components/CustomerSearch';
 import { CustomerFilters } from '../components/CustomerFilters';
@@ -8,10 +7,11 @@ import { CustomerTable } from '../components/CustomerTable';
 import { EmptyState } from '../components/EmptyState';
 import { TableSkeleton } from '../components/LoadingSpinner';
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog';
-import { useDeleteCustomer } from '../hooks/useDeleteCustomer';
+import { useCustomers, useDeleteCustomer } from '../api/real-client/hooks';
 import { DEBOUNCE_MS } from '@/constants';
 import { cn } from '@/utils/cn';
 import type { CustomerStatus, CustomerTier } from '../types';
+
 
 export function CustomerListPage() {
   const navigate = useNavigate();

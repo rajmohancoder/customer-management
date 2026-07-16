@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCustomer } from '../hooks/useCustomer';
-import { useUpdateCustomer } from '../hooks/useUpdateCustomer';
+import { useCustomer, useUpdateCustomer } from '../api/real-client/hooks';
 import { PageHeader } from '../components/PageHeader';
 import { CustomerForm } from '../components/CustomerForm';
 import { DetailSkeleton } from '../components/LoadingSpinner';
