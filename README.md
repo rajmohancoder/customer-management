@@ -159,6 +159,22 @@ customer: () => import('customer/CustomerApp'),
 - Node.js >= 18
 - pnpm >= 9
 
+### NPM Token (Required)
+
+`@rajmohancoder/*` packages are hosted on GitHub Packages. You need a [GitHub Personal Access Token (classic)](https://github.com/settings/tokens) with `read:packages` scope to install them.
+
+Add this to your `~/.zshrc` (or equivalent shell profile):
+
+```bash
+export NPM_TOKEN=ghp_your_token_here
+```
+
+Then reload:
+
+```bash
+source ~/.zshrc (Only once per terminal session — if the token isn't taking effect in your current shell. Or just open a new terminal tab/window and it's already loaded automatically.)
+```
+
 ### Install
 
 ```bash

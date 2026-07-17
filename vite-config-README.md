@@ -203,28 +203,75 @@ shared: {
 
 ---
 
+## Environment Variables
+
+| Variable | Default | Where set | Purpose |
+|---|---|---|---|
+| `VITE_REMOTE_PORT` | `3001` | `.env.development`, `.env.production` | Dev/preview server port |
+| `VITE_API_URL` | `/api` | `.env.development`, `.env.production` | Backend API base URL |
+| `VITE_BASE` | `/` | `.env.development`, `.env.production` | Public base path for assets |
+
+### `VITE_BASE` — Production asset path
+
+Controls the URL prefix for all bundled assets (`remoteEntry.js`, chunks, CSS). The shell fetches the remote entry at:
+
+```
+{base}/assets/remoteEntry.js
+```
+
+```ts
+// vite.config.ts
+base: env.VITE_BASE || '/',
+```
+
+| Environment | `.env` value | URL resolves to |
+|---|---|---|
+| Development | `VITE_BASE=/` | `http://localhost:3001/assets/remoteEntry.js` |
+| Production | `VITE_BASE=/customer-mfe/` | `https://cdn.example.com/customer-mfe/assets/remoteEntry.js` |
+
+**Before deploying:** update `VITE_BASE` in `.env.production` to match your CDN/deploy path then update the shell's `remotes` URL accordingly.
+
+---
+
 ## Serving & Build Modes
 
 ### Development
 ```bash
 pnpm dev
 # Serves at http://localhost:3001
-# The shell must also run in dev mode and reference the remote URL
+# Shell remote URL: http://localhost:3001/assets/remoteEntry.js
 ```
 
 ### Production build
 ```bash
-pnpm build
-pnpm preview
-# Serves built assets at http://localhost:3001
+pnpm build          # outputs to dist/
+pnpm preview        # preview the built output locally
 # Deploy dist/ to CDN/production server
 ```
 
-In production, replace `remotes` URLs in the shell:
+The shell's `remotes` config must point to the deployed remote entry:
 ```ts
 remotes: {
-  customer: 'https://cdn.example.com/customer/assets/remoteEntry.js',
+  customer: 'https://cdn.example.com/customer-mfe/assets/remoteEntry.js',
 }
+//                                    ^^^^^^^^^^^^^^^^
+//                    must match VITE_BASE in .env.production
+```
+
+### CORS requirement
+
+Your production server/CDN **must** send `Access-Control-Allow-Origin` headers so the shell can fetch `remoteEntry.js` and chunk files cross-origin:
+
+```nginx
+# nginx example
+location /customer-mfe/ {
+  add_header Access-Control-Allow-Origin *;
+}
+```
+
+```yaml
+# GitHub Pages, Vercel, Netlify, etc.
+# Configure custom headers via their dashboard or _headers file
 ```
 
 ---
@@ -244,6 +291,86 @@ exposes: {
 ```tsx
 const CustomerList = React.lazy(() => import('customer/CustomerListPage'))
 ```
+
+---
+
+---
+
+## Build Performance & Caching
+
+### `cssCodeSplit: false`
+
+By default Vite splits CSS per-chunk (each lazy-loaded route gets its own `.css` file). For an MFE consumed by a shell, this causes **multiple CSS requests** on route transitions, potentially flashing unstyled content (FOUC).
+
+```ts
+cssCodeSplit: false, // Single CSS file for the entire MFE
+```
+
+| Setting | When to use |
+|---|---|
+| `false` | Small-to-medium MFEs, Tailwind-based CSS, avoids FOUC on route changes |
+| `true` (default) | Very large MFEs (50+ routes) where users shouldn't download CSS for pages they never visit |
+
+**Recommendation:** Keep `false` for per-domain MFEs like this one.
+
+---
+
+### `rollupOptions.output` — Cache-busting with content hashes
+
+```ts
+rollupOptions: {
+  output: {
+    chunkFileNames: 'assets/[name]-[hash].js',  // Lazy-loaded routes
+    entryFileNames: 'assets/[name]-[hash].js',  // Entry points
+    assetFileNames: 'assets/[name]-[hash][extname]', // CSS, images, fonts
+  },
+}
+```
+
+| Pattern | Example | Purpose |
+|---|---|---|
+| `[name]` | `CustomerListPage` | Readable file names for debugging |
+| `[hash]` | `Ab3k9f` | Content-based hash — changes only when file content changes |
+| `[extname]` | `.css` / `.png` | Preserves original extension |
+
+**Enterprise benefit:** The shell/CDN can serve `dist/assets/*` with `Cache-Control: immutable`. Browsers cache these files forever. On your next deploy, only files whose content changed get new hashes — users download only the delta.
+
+Without hashes:
+```
+assets/CustomerListPage.js   ← cached forever, never invalidated on update
+```
+
+With hashes:
+```
+assets/CustomerListPage-Ab3k9f.js   ← deployed v1
+assets/CustomerListPage-Xz4m8p.js   ← deployed v2 (only this file re-downloaded)
+```
+
+---
+
+### `esbuild.drop` — Strip console & debugger in production
+
+```ts
+esbuild: {
+  drop: mode === 'production' ? ['console', 'debugger'] : [],
+}
+```
+
+- **`pnpm build`** (production mode) — esbuild strips every `console.*` and `debugger` call from the bundled output. Source files remain untouched.
+- **`pnpm dev`** (development mode) — nothing is removed, all logs visible.
+
+**Why:** Smaller bundle, prevents internal debug info leaking to users, eliminates console noise in production. For enterprise, consider a logger utility that preserves `console.error` for error monitoring (Sentry, Datadog).
+
+---
+
+### `strictPort: true`
+
+```ts
+server: { port, strictPort: true },
+preview: { port, strictPort: true },
+```
+
+If port `3001` is already in use, Vite **fails immediately** instead of falling back to the next available port (e.g. `3002`). This is intentional — the shell's Module Federation config hardcodes `http://localhost:3001/assets/remoteEntry.js`, so the MFE must always be on the expected port.
 
 ---
 

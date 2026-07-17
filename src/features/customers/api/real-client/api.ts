@@ -22,6 +22,7 @@ export const customerApi = {
   delete: (id: string) =>
     apiClient.delete<void>(`/customers/${id}`),
 
+  // NOTE: Not currently used by any component. Reserved for dashboard stats.
   getStats: () =>
     apiClient.get<CustomerStats>('/customers/stats'),
 };

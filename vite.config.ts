@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => {
   const port = parseInt(env.VITE_REMOTE_PORT || '3001', 10);
 
   return {
+    base: env.VITE_BASE || '/',
     plugins: [
       react(),
       federation({
@@ -41,14 +42,27 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       target: 'esnext',
+      cssCodeSplit: false,
+      rollupOptions: {
+        output: {
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash][extname]',
+        },
+      },
+    },
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
     },
     server: {
       port,
       strictPort: true,
+      cors: true,
     },
     preview: {
       port,
       strictPort: true,
+      cors: true,
     },
   };
 });
