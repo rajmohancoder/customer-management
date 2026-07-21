@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCustomer, useUpdateCustomer } from '../api/real-client/hooks';
+import { useCustomer, useUpdateCustomer } from '..';
 import { PageHeader } from '../components/PageHeader';
 import { CustomerForm } from '../components/CustomerForm';
 import { DetailSkeleton } from '../components/LoadingSpinner';
 import type { CustomerFormValues } from '../schemas/customerSchema';
-import type { CustomerWithDetails } from '../types';
+import type { CustomerWithDetails } from '..';
 
 function mapCustomerToFormValues(customer: CustomerWithDetails): CustomerFormValues {
   return {

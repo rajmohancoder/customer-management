@@ -61,7 +61,7 @@ src/
 │       │   ├── real-client/   # Production API client (single source of truth)
 │       │   │   ├── client.ts  # createApiClient({ baseUrl, scopes })
 │       │   │   ├── api.ts     # One-liner API functions
-│       │   │   └── hooks.ts   # TanStack Query hooks (optional, hooks/ dir preferred)
+│       │   │   └── hooks.ts   # TanStack Query hooks
 │       │   ├── client.ts      # Mock CRUD API (to be removed)
 │       │   └── mock.ts        # 50 realistic customer records (to be removed)
 │       ├── components/       # Reusable UI components
@@ -78,14 +78,7 @@ src/
 │       │   ├── StatCards.tsx            # Dashboard statistics
 │       │   ├── EmptyState.tsx
 │       │   └── LoadingSpinner.tsx
-│       ├── hooks/            # TanStack Query hooks
-│       │   ├── useCustomers.ts
-│       │   ├── useCustomer.ts
-│       │   ├── useCreateCustomer.ts
-│       │   ├── useUpdateCustomer.ts
-│       │   └── useDeleteCustomer.ts
 │       ├── pages/            # Route-level page components
-│       │   ├── DashboardPage.tsx
 │       │   ├── CustomerListPage.tsx
 │       │   ├── CustomerDetailsPage.tsx
 │       │   ├── CreateCustomerPage.tsx
@@ -93,8 +86,6 @@ src/
 │       │   └── SettingsPage.tsx
 │       ├── schemas/
 │       │   └── customerSchema.ts   # Zod validation schemas
-│       ├── services/
-│       │   └── customerService.ts  # Service layer (to be removed — hooks call api directly)
 │       └── types/
 │           └── index.ts            # Feature-specific types
 ├── routes/
@@ -209,7 +200,7 @@ pnpm typecheck
 2. Add route in `src/app/routes.tsx` (lazy import)
 3. Add navigation link if needed
 4. Add API endpoint in `src/features/customers/api/client.ts`
-5. Add query hook in `src/features/customers/hooks/`
+ 5. Add query hook in `src/features/customers/api/real-client/hooks.ts`
 6. Create reusable components as needed in `src/features/customers/components/`
 
 ## Error Handling

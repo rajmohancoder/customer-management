@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-// import { fetchCustomers } from '../client';
 import { customerApi } from './api';
 import { QUERY_KEYS } from '@/constants';
-import type { CustomerFormData, CustomerListParams } from '../../types';
-import { fetchCustomers } from '../client';
+import type { CustomerFormData, CustomerListParams } from '../types';
+import { fetchCustomers } from './mock-client';
 
 
 export function useCustomers(params: CustomerListParams) {

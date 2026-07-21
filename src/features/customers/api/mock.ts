@@ -40,10 +40,10 @@ const customersData: MockCustomerInput[] = [
     createdAt: '2023-03-22T14:00:00Z', updatedAt: '2025-07-01T09:30:00Z',
   },
   {
-    name: 'John Smith',
-    email: 'john.smith@acmecorp.com',
+    name: 'John Smith vaithi',
+    email: 'john.smithvaithi@acmecorp.com',
     phone: '+1-212-555-0198',
-    companyName: 'Acme Corporation',
+    companyName: 'Acme Corporation vaithi corp',
     gstNumber: '33CCCCC2222C1Z7',
     website: 'https://www.acmecorp.com',
     address: { street: '350 Fifth Avenue', city: 'New York', state: 'New York', postalCode: '10118', country: 'United States' },

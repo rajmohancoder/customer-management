@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCustomer, useDeleteCustomer } from '../api/real-client/hooks';
+import { useCustomer, useDeleteCustomer } from '..';
 import { PageHeader } from '../components/PageHeader';
 import { CustomerInfo } from '../components/CustomerInfo';
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog';

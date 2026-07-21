@@ -4,7 +4,7 @@ import type {
   CustomerWithDetails,
   CustomerFormData,
   CustomerStats,
-} from '../../types';
+} from '../types';
 
 export const customerApi = {
   list: (params: { page: number; pageSize: number; search?: string; status?: string; tier?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }) =>

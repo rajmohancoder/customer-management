@@ -1,6 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotFoundPage } from '@/components/NotFoundPage';
 import { LoadingSpinner } from '@/features/customers/components/LoadingSpinner';
 
@@ -44,7 +43,6 @@ function SuspenseFallback() {
 
 export function AppRoutes() {
   return (
-    <ErrorBoundary moduleName="CustomerManagement">
       <Routes>
         <Route
           index
@@ -88,6 +86,5 @@ export function AppRoutes() {
         />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </ErrorBoundary>
   );
 }

@@ -7,10 +7,10 @@ import { CustomerTable } from '../components/CustomerTable';
 import { EmptyState } from '../components/EmptyState';
 import { TableSkeleton } from '../components/LoadingSpinner';
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog';
-import { useCustomers, useDeleteCustomer } from '../api/real-client/hooks';
+import { useCustomers, useDeleteCustomer } from '..';
 import { DEBOUNCE_MS } from '@/constants';
 import { cn } from '@/utils/cn';
-import type { CustomerStatus, CustomerTier } from '../types';
+import type { CustomerStatus, CustomerTier } from '..';
 
 
 export function CustomerListPage() {

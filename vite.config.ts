@@ -50,6 +50,7 @@ export default defineConfig(({ mode }) => {
           assetFileNames: 'assets/[name]-[hash][extname]',
         },
       },
+      sourcemap: true,
     },
     esbuild: {
       drop: mode === 'production' ? ['console', 'debugger'] : [],
@@ -58,6 +59,9 @@ export default defineConfig(({ mode }) => {
       port,
       strictPort: true,
       cors: true,
+      headers: {
+        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' ws:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:",
+      },
     },
     preview: {
       port,
