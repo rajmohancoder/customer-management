@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
 import { CustomerSearch } from '../components/CustomerSearch';
 import { CustomerFilters } from '../components/CustomerFilters';
@@ -7,6 +7,7 @@ import { CustomerTable } from '../components/CustomerTable';
 import { EmptyState } from '../components/EmptyState';
 import { TableSkeleton } from '../components/LoadingSpinner';
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog';
+import { AddCustomerDialog } from '../components/AddCustomerDialog';
 import { useCustomers, useDeleteCustomer } from '..';
 import { DEBOUNCE_MS } from '@/constants';
 import { cn } from '@/utils/cn';
@@ -104,15 +105,7 @@ export function CustomerListPage() {
         title="Customers"
         description={total > 0 ? `${total} total customers` : 'Manage your customer relationships'}
       >
-        <Link
-          to="/customers/new"
-          className="btn-primary"
-        >
-          <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-          </svg>
-          Add Customer
-        </Link>
+        <AddCustomerDialog />
       </PageHeader>
 
       <div className="flex flex-wrap items-center gap-4">
@@ -158,12 +151,7 @@ export function CustomerListPage() {
           }
           action={
             !debouncedSearch && !statusFilter && !tierFilter ? (
-              <Link to="/customers/new" className="btn-primary">
-                <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
-                </svg>
-                Add Customer
-              </Link>
+              <AddCustomerDialog />
             ) : undefined
           }
         />
