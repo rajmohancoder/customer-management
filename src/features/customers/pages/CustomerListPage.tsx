@@ -9,14 +9,11 @@ import { TableSkeleton } from '../components/LoadingSpinner';
 import { ConfirmDeleteDialog } from '../components/ConfirmDeleteDialog';
 import { useCustomers, useDeleteCustomer } from '..';
 import { DEBOUNCE_MS } from '@/constants';
-import { cn } from '@/utils/cn';
 import type { CustomerStatus, CustomerTier } from '..';
 
 
 export function CustomerListPage() {
   const navigate = useNavigate();
-  const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<CustomerStatus | ''>('');
@@ -38,7 +35,6 @@ export function CustomerListPage() {
     (setter: (value: any) => void) =>
       (value: any) => {
         setter(value);
-        setPage(1);
       },
     [],
   );
@@ -56,8 +52,8 @@ export function CustomerListPage() {
   );
 
   const { data, isLoading, isError } = useCustomers({
-    page,
-    pageSize,
+    page: 1,
+    pageSize: 100,
     search: debouncedSearch || undefined,
     status: statusFilter || undefined,
     tier: tierFilter || undefined,
@@ -66,7 +62,6 @@ export function CustomerListPage() {
   });
 
   const customers = data?.data ?? [];
-  const totalPages = data?.totalPages ?? 0;
   const total = data?.total ?? 0;
 
   const handleDelete = useCallback((id: string) => {
@@ -120,7 +115,6 @@ export function CustomerListPage() {
           value={search}
           onChange={(val) => {
             setSearch(val);
-            setPage(1);
           }}
         />
         <CustomerFilters
@@ -137,7 +131,6 @@ export function CustomerListPage() {
               setDebouncedSearch('');
               setStatusFilter('');
               setTierFilter('');
-              setPage(1);
             }}
             className="btn-ghost btn-sm text-surface-500"
           >
@@ -178,75 +171,6 @@ export function CustomerListPage() {
             onEdit={(id) => navigate(`/customers/${id}/edit`)}
             onDelete={handleDelete}
           />
-
-          {totalPages > 1 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-surface-200 pt-4">
-              <p className="text-sm text-surface-500">
-                Showing <span className="font-medium text-surface-700">{((page - 1) * pageSize) + 1}</span> to{' '}
-                <span className="font-medium text-surface-700">{Math.min(page * pageSize, total)}</span> of{' '}
-                <span className="font-medium text-surface-700">{total}</span> customers
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className={cn(
-                    'btn-secondary btn-sm',
-                    page <= 1 && 'opacity-50 cursor-not-allowed'
-                  )}
-                >
-                  <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
-                  </svg>
-                  Previous
-                </button>
-                <div className="hidden sm:flex items-center gap-1">
-                  {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                    let pageNum: number;
-                    if (totalPages <= 7) {
-                      pageNum = i + 1;
-                    } else if (page <= 4) {
-                      pageNum = i + 1;
-                    } else if (page >= totalPages - 3) {
-                      pageNum = totalPages - 6 + i;
-                    } else {
-                      pageNum = page - 3 + i;
-                    }
-                    return (
-                      <button
-                        key={pageNum}
-                        type="button"
-                        onClick={() => setPage(pageNum)}
-                        className={cn(
-                          'btn-icon-sm rounded-lg text-sm font-medium transition-colors',
-                          page === pageNum
-                            ? 'bg-brand-600 text-white'
-                            : 'text-surface-600 hover:bg-surface-100'
-                        )}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-                <button
-                  type="button"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className={cn(
-                    'btn-secondary btn-sm',
-                    page >= totalPages && 'opacity-50 cursor-not-allowed'
-                  )}
-                >
-                  Next
-                  <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
         </>
       )}
 

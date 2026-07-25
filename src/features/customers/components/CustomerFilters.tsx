@@ -1,5 +1,12 @@
 import type { CustomerStatus, CustomerTier } from '../types';
 import { CUSTOMER_STATUSES, CUSTOMER_TIERS } from '@/constants';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface CustomerFiltersProps {
   status: CustomerStatus | '';
@@ -12,39 +19,33 @@ export function CustomerFilters({ status, tier, onStatusChange, onTierChange }: 
   const hasFilters = status !== '' || tier !== '';
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative">
-        <label htmlFor="status-filter" className="sr-only">Filter by status</label>
-        <select
-          id="status-filter"
-          value={status}
-          onChange={(e) => onStatusChange(e.target.value as CustomerStatus | '')}
-          className="select min-w-[140px]"
-        >
-          <option value="">All Statuses</option>
+    <div className="flex items-center gap-2">
+      <Select value={status} onValueChange={(value) => onStatusChange(value as CustomerStatus | '')}>
+        <SelectTrigger className="w-[150px] gap-2" aria-label="Filter by status">
+          <SelectValue placeholder="All Statuses" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">All Statuses</SelectItem>
           {CUSTOMER_STATUSES.map((s) => (
-            <option key={s} value={s}>
+            <SelectItem key={s} value={s}>
               {s.charAt(0).toUpperCase() + s.slice(1)}
-            </option>
+            </SelectItem>
           ))}
-        </select>
-      </div>
-      <div className="relative">
-        <label htmlFor="tier-filter" className="sr-only">Filter by tier</label>
-        <select
-          id="tier-filter"
-          value={tier}
-          onChange={(e) => onTierChange(e.target.value as CustomerTier | '')}
-          className="select min-w-[140px]"
-        >
-          <option value="">All Tiers</option>
+        </SelectContent>
+      </Select>
+      <Select value={tier} onValueChange={(value) => onTierChange(value as CustomerTier | '')}>
+        <SelectTrigger className="w-[150px] gap-2" aria-label="Filter by tier">
+          <SelectValue placeholder="All Tiers" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">All Tiers</SelectItem>
           {CUSTOMER_TIERS.map((t) => (
-            <option key={t} value={t}>
+            <SelectItem key={t} value={t}>
               {t.charAt(0).toUpperCase() + t.slice(1)}
-            </option>
+            </SelectItem>
           ))}
-        </select>
-      </div>
+        </SelectContent>
+      </Select>
       {hasFilters && (
         <button
           type="button"

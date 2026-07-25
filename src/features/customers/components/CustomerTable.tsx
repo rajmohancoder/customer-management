@@ -1,9 +1,35 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { useReactTable, getCoreRowModel, getSortedRowModel, getPaginationRowModel, flexRender, type ColumnDef, type PaginationState } from '@tanstack/react-table';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import type { CustomerWithDetails } from '../types';
 import { CustomerStatusBadge } from './CustomerStatusBadge';
+import { DataTableColumnHeader } from './DataTableColumnHeader';
 import { TableSkeleton } from './LoadingSpinner';
 import { EmptyState } from './EmptyState';
 import { cn } from '@/utils/cn';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 const tierStyles: Record<string, string> = {
   bronze: 'badge-warning',
@@ -19,7 +45,7 @@ const tierIcons: Record<string, string> = {
   platinum: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z',
 };
 
-const sortableFields = ['name', 'email', 'status', 'tier', 'createdAt'] as const;
+const PAGE_SIZE_OPTIONS = [5, 10, 15, 20];
 
 interface CustomerTableProps {
   customers: CustomerWithDetails[];
@@ -32,6 +58,23 @@ interface CustomerTableProps {
   onSort?: (field: string) => void;
 }
 
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
 export function CustomerTable({
   customers,
   onView,
@@ -42,6 +85,28 @@ export function CustomerTable({
   sortOrder,
   onSort,
 }: CustomerTableProps) {
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [paginationLoading, setPaginationLoading] = useState(false);
+  const loadingTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    return () => {
+      if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    };
+  }, []);
+
+  const schedulePagination = useCallback((newPagination: PaginationState) => {
+    if (loadingTimerRef.current) clearTimeout(loadingTimerRef.current);
+    setPaginationLoading(true);
+    loadingTimerRef.current = setTimeout(() => {
+      setPagination(newPagination);
+      setPaginationLoading(false);
+    }, 2000);
+  }, []);
+
   if (isLoading) {
     return <TableSkeleton />;
   }
@@ -55,152 +120,287 @@ export function CustomerTable({
     );
   }
 
-  const renderSortIcon = (field: string) => {
-    if (sortBy !== field) {
-      return (
-        <svg className="ml-1 h-3.5 w-3.5 text-surface-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fillRule="evenodd" d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z" clipRule="evenodd" />
-        </svg>
-      );
-    }
-    return (
-      <svg className={cn('ml-1 h-3.5 w-3.5', sortOrder === 'asc' ? 'text-brand-600' : 'text-brand-600')} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        {sortOrder === 'asc' ? (
-          <path fillRule="evenodd" d="M10 17a.75.75 0 01-.55-.24l-3.25-3.5a.75.75 0 111.1-1.02l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5A.75.75 0 0110 17zm-3.76-9.2a.75.75 0 01-.04-1.06l3.25-3.5a.75.75 0 011.1 0l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.06.04z" clipRule="evenodd" />
-        ) : (
-          <path fillRule="evenodd" d="M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z" clipRule="evenodd" />
-        )}
-      </svg>
-    );
-  };
+  const columns: ColumnDef<CustomerWithDetails>[] = [
+    {
+      accessorKey: 'name',
+      header: () => (
+        <DataTableColumnHeader
+          title="Name"
+          columnId="name"
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={onSort}
+        />
+      ),
+      cell: ({ row }) => (
+        <button
+          onClick={() => onView(row.original.id)}
+          className="text-sm font-medium text-surface-900 hover:text-brand-600 transition-colors"
+        >
+          {row.original.name}
+        </button>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'email',
+      header: () => (
+        <DataTableColumnHeader
+          title="Email"
+          columnId="email"
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={onSort}
+        />
+      ),
+      cell: ({ row }) => (
+        <span className="text-surface-500">{row.original.email}</span>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'companyName',
+      header: () => (
+        <span className="text-xs font-semibold uppercase tracking-wider text-surface-600">Company</span>
+      ),
+      cell: ({ row }) => (
+        <span className="text-surface-500">{row.original.companyName}</span>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'status',
+      header: () => (
+        <DataTableColumnHeader
+          title="Status"
+          columnId="status"
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={onSort}
+        />
+      ),
+      cell: ({ row }) => <CustomerStatusBadge status={row.original.status} />,
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'tier',
+      header: () => (
+        <DataTableColumnHeader
+          title="Tier"
+          columnId="tier"
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={onSort}
+        />
+      ),
+      cell: ({ row }) => (
+        <span className={cn('inline-flex items-center gap-1.5', tierStyles[row.original.tier])}>
+          <svg className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d={tierIcons[row.original.tier]} />
+          </svg>
+          {row.original.tier.charAt(0).toUpperCase() + row.original.tier.slice(1)}
+        </span>
+      ),
+      enableSorting: false,
+    },
+    {
+      accessorKey: 'createdAt',
+      header: () => (
+        <DataTableColumnHeader
+          title="Created"
+          columnId="createdAt"
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSort={onSort}
+        />
+      ),
+      cell: ({ row }) => (
+        <span className="text-surface-500">{formatDate(row.original.createdAt)}</span>
+      ),
+      enableSorting: false,
+    },
+    {
+      id: 'actions',
+      header: () => <span className="sr-only">Actions</span>,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-0.5">
+          <button
+            onClick={() => onView(row.original.id)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-100 hover:text-brand-600"
+            aria-label={`View ${row.original.name}`}
+            title="View"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => onEdit(row.original.id)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-surface-100 hover:text-brand-600"
+            aria-label={`Edit ${row.original.name}`}
+            title="Edit"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => onDelete(row.original.id)}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-surface-400 transition-colors hover:bg-red-50 hover:text-red-600"
+            aria-label={`Delete ${row.original.name}`}
+            title="Delete"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ),
+      enableSorting: false,
+    },
+  ];
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const table = useReactTable({
+    data: customers,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: paginationLoading ? undefined : getPaginationRowModel(),
+    enableSorting: false,
+    enableColumnResizing: false,
+    state: { pagination },
+    onPaginationChange: setPagination,
+  });
 
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
+  const { pageIndex, pageSize } = pagination;
+  const totalRows = customers.length;
+  const pageCount = table.getPageCount();
+  const startRow = pageIndex * pageSize + 1;
+  const endRow = Math.min((pageIndex + 1) * pageSize, totalRows);
 
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
+  const isFetching = paginationLoading;
 
   return (
-    <div className="table-container animate-fade-in">
-      <div className="table-wrapper">
-        <table className="min-w-full divide-y divide-surface-200">
-          <thead className="bg-surface-50">
-            <tr>
-              {sortableFields.map((field) => (
-                <th
-                  key={field}
-                  scope="col"
-                  className={cn(
-                    'px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-surface-600',
-                    onSort && 'cursor-pointer select-none hover:text-surface-800'
-                  )}
-                  onClick={() => onSort?.(field)}
-                  aria-label={`Sort by ${field}${sortBy === field ? `, current sort order: ${sortOrder}` : ''}`}
-                  role={onSort ? 'button' : undefined}
-                  tabIndex={onSort ? 0 : undefined}
-                  onKeyDown={(e) => {
-                    if (onSort && (e.key === 'Enter' || e.key === ' ')) {
-                      e.preventDefault();
-                      onSort(field);
-                    }
-                  }}
-                >
-                  <span className="inline-flex items-center gap-1">
-                    {field === 'createdAt' ? 'Created' : field.charAt(0).toUpperCase() + field.slice(1)}
-                    {onSort && renderSortIcon(field)}
-                  </span>
-                </th>
-              ))}
-              <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-surface-600">
-                Company
-              </th>
-              <th scope="col" className="relative px-6 py-3.5">
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-surface-100 bg-white">
-            {customers.map((customer) => (
-              <tr key={customer.id} className="group transition-colors duration-150 hover:bg-surface-50">
-                <td className="whitespace-nowrap px-6 py-4">
-                  <button
-                    onClick={() => onView(customer.id)}
-                    className="text-sm font-medium text-surface-900 hover:text-brand-600 transition-colors"
-                  >
-                    {customer.name}
-                  </button>
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-surface-500">
-                  {customer.email}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-surface-500">
-                  {customer.companyName}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4">
-                  <CustomerStatusBadge status={customer.status} />
-                </td>
-                <td className="whitespace-nowrap px-6 py-4">
-                  <span className={cn('inline-flex items-center gap-1.5', tierStyles[customer.tier])}>
-                    <svg className="h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" d={tierIcons[customer.tier]} />
-                    </svg>
-                    {customer.tier.charAt(0).toUpperCase() + customer.tier.slice(1)}
-                  </span>
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-sm text-surface-500">
-                  {formatDate(customer.createdAt)}
-                </td>
-                <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
-                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                    <button
-                      onClick={() => onView(customer.id)}
-                      className="btn-icon-sm rounded-lg text-surface-400 hover:bg-surface-100 hover:text-brand-600"
-                      aria-label={`View ${customer.name}`}
-                      title="View"
-                    >
-                      <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" />
-                        <path fillRule="evenodd" d="M.664 10.59a1.651 1.651 0 010-1.186A10.004 10.004 0 0110 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0110 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => onEdit(customer.id)}
-                      className="btn-icon-sm rounded-lg text-surface-400 hover:bg-surface-100 hover:text-brand-600"
-                      aria-label={`Edit ${customer.name}`}
-                      title="Edit"
-                    >
-                      <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path d="M5.433 13.917l1.262-3.155A4 4 0 017.58 9.42l6.92-6.918a2.121 2.121 0 013 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 01-.65-.65z" />
-                        <path d="M3.83 16.17a.75.75 0 00.566.457l2.71.542a.75.75 0 00.742-.327L9.67 14.33l-2-2-3.84 2.84z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => onDelete(customer.id)}
-                      className="btn-icon-sm rounded-lg text-surface-400 hover:bg-red-50 hover:text-red-600"
-                      aria-label={`Delete ${customer.name}`}
-                      title="Delete"
-                    >
-                      <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c-.84 0-1.673.025-2.5.075V3.75c0-.69.56-1.25 1.25-1.25h2.5c.69 0 1.25.56 1.25 1.25v.325C11.673 4.025 10.84 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
+    <div className="space-y-4">
+      <div className={cn('overflow-hidden rounded-md border', isFetching && 'relative')}>
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableHeader>
+          <TableBody>
+            {isFetching
+              ? Array.from({ length: pageSize }).map((_, i) => (
+                  <TableRow key={i} className="border-b border-surface-200">
+                    {Array.from({ length: 7 }).map((_, j) => (
+                      <TableCell key={j}>
+                        <div className="skeleton h-4 w-full" style={{ maxWidth: `${50 + Math.random() * 40}%` }} />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} className="group">
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-surface-500">
+          {isFetching ? (
+            <>
+              Loading{' '}
+              <span className="inline-block h-3 w-16 skeleton align-middle" />
+            </>
+          ) : (
+            <>
+              Showing{' '}
+              <span className="font-medium text-surface-700">{startRow}</span>
+              {' '}to{' '}
+              <span className="font-medium text-surface-700">{endRow}</span>
+              {' '}of{' '}
+              <span className="font-medium text-surface-700">{totalRows}</span>{' '}
+              customers
+            </>
+          )}
+        </p>
+
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-surface-500">Rows per page</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => {
+                schedulePagination({ pageIndex: 0, pageSize: Number(value) });
+              }}
+              disabled={isFetching}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => schedulePagination({ pageIndex: pageIndex - 1, pageSize })}
+                disabled={!table.getCanPreviousPage() || isFetching}
+              />
+            </PaginationItem>
+
+            {[1, 2, 3].filter((p) => p <= Math.min(pageCount, 3)).map((p) => (
+              <PaginationItem key={p}>
+                <PaginationLink
+                  isActive={!isFetching && pageIndex + 1 === p}
+                  onClick={() => schedulePagination({ pageIndex: p - 1, pageSize })}
+                  disabled={isFetching}
+                >
+                  {p}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+
+            {pageCount > 3 && (
+              <>
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationLink
+                    isActive={!isFetching && pageIndex + 1 === pageCount}
+                    onClick={() => schedulePagination({ pageIndex: pageCount - 1, pageSize })}
+                    disabled={isFetching}
+                  >
+                    {pageCount}
+                  </PaginationLink>
+                </PaginationItem>
+              </>
+            )}
+
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => schedulePagination({ pageIndex: pageIndex + 1, pageSize })}
+                disabled={!table.getCanNextPage() || isFetching}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </div>
       </div>
     </div>
   );
